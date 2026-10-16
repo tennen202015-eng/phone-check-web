@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0D4450">
+<title>سياسة الخصوصية — فاحص الجوال</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --petrol: #0D4450;
+    --mist: #EDF1F0;
+    --paper: #FFFFFF;
+    --ink: #14272C;
+    --slate: #5E7076;
+    --line: #E1E8E7;
+    --dim: #B7D3D8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--mist); color: var(--ink); }
+  body { font-family: "IBM Plex Sans Arabic", system-ui, sans-serif; font-size: 16px; line-height: 1.75; }
+  header {
+    background: var(--petrol); color: #fff;
+    padding: calc(16px + env(safe-area-inset-top)) 20px 24px;
+    border-radius: 0 0 28px 28px;
+  }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 720px; margin: 0 auto; }
+  .app { color: var(--dim); font-weight: 600; font-size: 14px; }
+  header h1 { margin: 6px auto 0; font-size: 24px; line-height: 1.35; max-width: 720px; }
+  header p { margin: 6px auto 0; color: var(--dim); font-size: 14px; max-width: 720px; }
+  .lang {
+    font: inherit; font-size: 13px; font-weight: 600; color: #fff; background: transparent;
+    border: 1px solid var(--dim); border-radius: 18px; padding: 6px 14px; cursor: pointer; min-height: 36px;
+  }
+  .lang:focus-visible { outline: 3px solid #5BE3A8; outline-offset: 2px; }
+  main { padding: 16px 16px calc(40px + env(safe-area-inset-bottom)); max-width: 720px; margin: 0 auto; }
+  section { background: var(--paper); border-radius: 20px; padding: 18px 20px; margin-bottom: 10px; }
+  h2 { margin: 0 0 6px; font-size: 18px; }
+  p { margin: 0 0 10px; }
+  section p:last-child, section ul:last-child { margin-bottom: 0; }
+  ul { margin: 0 0 10px; padding-inline-start: 22px; }
+  li { margin: 4px 0; }
+  .muted { color: var(--slate); font-size: 14px; }
+  a { color: var(--petrol); font-weight: 600; }
+  [data-l="en"] { display: none; }
+  html[lang="en"] [data-l="en"] { display: block; }
+  html[lang="en"] [data-l="ar"] { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <span class="app" data-l="ar">فاحص الجوال · DUWAINI</span>
+    <span class="app" data-l="en">Phone Check · DUWAINI</span>
+    <button class="lang" id="lang" type="button">English</button>
+  </div>
+  <h1 data-l="ar">سياسة الخصوصية</h1>
+  <h1 data-l="en">Privacy Policy</h1>
+  <p data-l="ar">آخر تحديث: 16 أكتوبر 2026</p>
+  <p data-l="en">Last updated: October 16, 2026</p>
+</header>
+
+<main>
+  <!-- ===================== العربية ===================== -->
+  <div data-l="ar">
+    <section>
+      <h2>باختصار</h2>
+      <p>تطبيق "فاحص الجوال" يفحص الجوال اللي تثبّته عليه، وكل الفحص يصير داخل جوالك. ما نجمع بياناتك، وما نرسلها لأي خادم، وما فيه إعلانات أو أدوات تتبّع.</p>
+    </section>
+
+    <section>
+      <h2>البيانات اللي يقراها التطبيق</h2>
+      <p>عشان يسوي الفحص، يقرا التطبيق معلومات تقنية عن الجهاز: الموديل وإصدار النظام والمعالج والذاكرة والتخزين وحالة البطارية والحساسات والمزايا المتوفرة. هذي المعلومات تُعرض لك وتدخل في التقرير فقط، وما تطلع من الجوال.</p>
+      <p>ما يقرا التطبيق رسائلك ولا صورك ولا جهات الاتصال ولا حساباتك.</p>
+    </section>
+
+    <section>
+      <h2>الأذونات ولماذا نطلبها</h2>
+      <ul>
+        <li><b>الكاميرا:</b> لاختبار الكاميرا الخلفية والأمامية والفلاش، ولمسح رمز QR في الفحص عن بُعد. الصور ما تنحفظ.</li>
+        <li><b>المايكروفون:</b> لاختبار المايك لمدة 3 ثواني. الصوت ما يتسجّل ولا ينحفظ.</li>
+        <li><b>الموقع:</b> لاختبار الـ GPS فقط. موقعك ما ينحفظ ولا يتم إرساله.</li>
+        <li><b>البصمة:</b> لاختبار حساس البصمة عن طريق نظام أندرويد. التطبيق ما يشوف بصمتك أبداً، النظام يرد بس بـ"نجح" أو "فشل".</li>
+        <li><b>الاهتزاز وإعدادات الصوت وحالة الشبكة:</b> لاختبار الاهتزاز والسماعات والواي فاي والبلوتوث والشريحة.</li>
+      </ul>
+      <p class="muted">تقدر ترفض أي إذن، والاختبار المرتبط فيه بيتخطّى بس.</p>
+    </section>
+
+    <section>
+      <h2>التقارير والسجل</h2>
+      <p>التقارير (PDF) والملاحظات اللي تكتبها تنحفظ في ذاكرة الجوال داخل التطبيق فقط. تقدر تحذف أي تقرير أو كل السجل من داخل التطبيق، وتنحذف كلها لو حذفت التطبيق.</p>
+      <p>لما تضغط "مشاركة"، أنت اللي تختار وين يروح التقرير (واتساب، إيميل…)، ووقتها تنطبق سياسة التطبيق اللي اخترته.</p>
+    </section>
+
+    <section>
+      <h2>الفحص عن بُعد (صفحة المتصفح)</h2>
+      <p>صفحة الفحص عن بُعد تشتغل داخل متصفح الجوال المفحوص، والاختبارات كلها تصير على الجوال نفسه. النتيجة تطلع كرمز QR على الشاشة، وما تنحفظ عندنا ولا ترسل لأي خادم.</p>
+      <p>الصفحة مستضافة على GitHub Pages، وتحمّل الخط من Google Fonts ومكتبة رمز QR من cdnjs. هذي الخدمات ممكن تسجّل عنوان IP ومعلومات المتصفح حسب سياساتها، مثل أي موقع على الإنترنت.</p>
+    </section>
+
+    <section>
+      <h2>الأطفال</h2>
+      <p>التطبيق مو موجّه للأطفال تحت 13 سنة، وما نجمع بيانات من أي مستخدم أصلاً.</p>
+    </section>
+
+    <section>
+      <h2>التغييرات على السياسة</h2>
+      <p>لو غيّرنا هذي السياسة، بنحدّث هذي الصفحة وتاريخ "آخر تحديث" أعلاها.</p>
+    </section>
+
+    <section>
+      <h2>التواصل</h2>
+      <p>لأي سؤال عن الخصوصية: <a href="mailto:YOUR_EMAIL@example.com">YOUR_EMAIL@example.com</a></p>
+      <p class="muted">DUWAINI</p>
+    </section>
+  </div>
+
+  <!-- ===================== English ===================== -->
+  <div data-l="en">
+    <section>
+      <h2>In short</h2>
+      <p>Phone Check inspects the phone it is installed on, and all checks run on your phone. We do not collect your data, do not send it to any server, and use no ads or trackers.</p>
+    </section>
+
+    <section>
+      <h2>What the app reads</h2>
+      <p>To run the inspection, the app reads technical details about the device: model, OS version, processor, memory, storage, battery status, sensors and available features. This information is shown to you and included in the report only. It never leaves the phone.</p>
+      <p>The app does not read your messages, photos, contacts or accounts.</p>
+    </section>
+
+    <section>
+      <h2>Permissions and why we ask</h2>
+      <ul>
+        <li><b>Camera:</b> to test the rear and front cameras and the flash, and to scan QR codes for remote inspection. Photos are not saved.</li>
+        <li><b>Microphone:</b> to test the mic for 3 seconds. Audio is not recorded or saved.</li>
+        <li><b>Location:</b> to test GPS only. Your location is not saved or sent anywhere.</li>
+        <li><b>Fingerprint:</b> to test the fingerprint sensor through Android. The app never sees your fingerprint; the system only reports success or failure.</li>
+        <li><b>Vibration, audio settings and network state:</b> to test vibration, speakers, Wi-Fi, Bluetooth and SIM.</li>
+      </ul>
+      <p class="muted">You can deny any permission; the related test is simply skipped.</p>
+    </section>
+
+    <section>
+      <h2>Reports and history</h2>
+      <p>Reports (PDF) and the notes you write are stored only in the app's private storage on your phone. You can delete any report, or the whole history, inside the app, and everything is removed if you uninstall it.</p>
+      <p>When you tap Share, you choose where the report goes (WhatsApp, email…), and that app's policy applies.</p>
+    </section>
+
+    <section>
+      <h2>Remote inspection (browser page)</h2>
+      <p>The remote inspection page runs in the inspected phone's browser, and all tests happen on that phone. The result appears as a QR code on screen; it is not stored by us or sent to any server.</p>
+      <p>The page is hosted on GitHub Pages and loads its font from Google Fonts and its QR library from cdnjs. Like any website, these services may log IP addresses and browser details under their own policies.</p>
+    </section>
+
+    <section>
+      <h2>Children</h2>
+      <p>The app is not directed at children under 13, and we do not collect data from any user.</p>
+    </section>
+
+    <section>
+      <h2>Changes to this policy</h2>
+      <p>If we change this policy, we will update this page and the "Last updated" date above.</p>
+    </section>
+
+    <section>
+      <h2>Contact</h2>
+      <p>For privacy questions: <a href="mailto:YOUR_EMAIL@example.com">YOUR_EMAIL@example.com</a></p>
+      <p class="muted">DUWAINI</p>
+    </section>
+  </div>
+</main>
+
+<script>
+  (function () {
+    var html = document.documentElement;
+    var btn = document.getElementById("lang");
+    function apply(l) {
+      html.lang = l;
+      html.dir = l === "en" ? "ltr" : "rtl";
+      btn.textContent = l === "en" ? "العربية" : "English";
+      document.title = l === "en" ? "Privacy Policy — Phone Check" : "سياسة الخصوصية — فاحص الجوال";
+    }
+    var start = /[?&]lang=en/.test(location.search) ? "en" : "ar";
+    apply(start);
+    btn.addEventListener("click", function () { apply(html.lang === "en" ? "ar" : "en"); });
+  })();
+</script>
+</body>
+</html>
