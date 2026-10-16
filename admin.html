@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0D4450">
+<meta name="robots" content="noindex, nofollow">
+<title>إدارة الاشتراكات — فاحص الجوال</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --petrol: #0D4450; --petrol-2: #155E6E; --mist: #EDF1F0; --paper: #FFFFFF; --ink: #14272C;
+    --slate: #5E7076; --line: #E1E8E7; --dim: #B7D3D8;
+    --green: #1E8E5E; --green-bg: #E2F3EB; --red: #C7432E; --red-bg: #FBE7E3;
+    --amber: #A86B0C; --amber-bg: #FDF1DC;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--mist); color: var(--ink); }
+  body { font-family: "IBM Plex Sans Arabic", system-ui, sans-serif; font-size: 16px; line-height: 1.55; }
+  button, input, select { font: inherit; }
+  header {
+    background: var(--petrol); color: #fff;
+    padding: calc(14px + env(safe-area-inset-top)) 16px 22px;
+    border-radius: 0 0 26px 26px;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .app { color: var(--dim); font-weight: 600; font-size: 14px; }
+  h1 { margin: 6px 0 0; font-size: 23px; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
+  .stat { background: rgba(255,255,255,.1); border-radius: 16px; padding: 10px 12px; }
+  .stat b { display: block; font-size: 22px; line-height: 1.2; }
+  .stat span { font-size: 12.5px; color: var(--dim); }
+  main { padding: 14px 16px calc(40px + env(safe-area-inset-bottom)); }
+  section, .card { background: var(--paper); border-radius: 20px; padding: 16px; margin-bottom: 10px; }
+  h2 { margin: 18px 4px 8px; font-size: 17px; }
+  label { display: block; font-size: 13.5px; color: var(--slate); font-weight: 600; margin: 10px 0 5px; }
+  input, select {
+    width: 100%; min-height: 46px; padding: 10px 12px; border: 1px solid var(--line);
+    border-radius: 14px; background: #fff; color: var(--ink);
+  }
+  input:focus-visible, select:focus-visible, button:focus-visible { outline: 3px solid #5BE3A8; outline-offset: 2px; }
+  .ltr { direction: ltr; text-align: left; letter-spacing: .06em; }
+  .btn {
+    min-height: 44px; padding: 9px 16px; border-radius: 22px; border: 0; cursor: pointer;
+    font-weight: 700; font-size: 14.5px;
+  }
+  .btn.primary { background: var(--petrol); color: #fff; width: 100%; margin-top: 14px; min-height: 48px; }
+  .btn.ghost { background: transparent; border: 1.5px solid var(--petrol); color: var(--petrol); }
+  .btn.small { min-height: 38px; padding: 6px 12px; font-size: 13.5px; }
+  .btn.danger { background: transparent; color: var(--red); border: 1.5px solid #EBC3BA; }
+  .btn.light { background: transparent; color: #fff; border: 1px solid var(--dim); font-weight: 600; font-size: 13px; min-height: 36px; }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .shop-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .shop-name { font-weight: 700; font-size: 16.5px; }
+  .code { font-size: 13.5px; color: var(--slate); direction: ltr; display: inline-block; letter-spacing: .05em; }
+  .chip { flex: none; font-size: 12.5px; font-weight: 700; padding: 3px 10px; border-radius: 12px; white-space: nowrap; }
+  .chip.ok { background: var(--green-bg); color: var(--green); }
+  .chip.soon { background: var(--amber-bg); color: var(--amber); }
+  .chip.off { background: var(--red-bg); color: var(--red); }
+  .until { margin: 8px 0 12px; font-size: 14px; color: var(--slate); }
+  .until b { color: var(--ink); }
+  .muted { color: var(--slate); font-size: 13.5px; }
+  .empty { text-align: center; color: var(--slate); padding: 22px 10px; }
+  .hidden { display: none !important; }
+  .toast {
+    position: fixed; inset-inline: 16px; bottom: calc(18px + env(safe-area-inset-bottom));
+    max-width: 608px; margin: 0 auto; background: var(--ink); color: #fff;
+    padding: 12px 16px; border-radius: 16px; font-size: 14.5px; z-index: 10;
+    box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  }
+  .toast.err { background: var(--red); }
+  .datebox { display: flex; gap: 8px; margin-top: 10px; }
+  .datebox input { flex: 1; }
+  ol { margin: 6px 0 0; padding-inline-start: 22px; color: var(--slate); font-size: 14px; }
+  li { margin: 3px 0; }
+  .filter { display: flex; gap: 6px; margin: 0 4px 10px; flex-wrap: wrap; }
+  .filter button { min-height: 36px; padding: 5px 14px; border-radius: 18px; border: 1px solid var(--line); background: #fff; color: var(--ink); font-weight: 600; font-size: 13.5px; cursor: pointer; }
+  .filter button[aria-pressed="true"] { background: var(--petrol); border-color: var(--petrol); color: #fff; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <span class="app">فاحص الجوال · DUWAINI</span>
+      <button class="btn light hidden" id="reloadBtn" type="button">تحديث</button>
+    </div>
+    <h1>إدارة الاشتراكات</h1>
+    <div class="stats hidden" id="stats">
+      <div class="stat"><b id="sActive">0</b><span>فعّال</span></div>
+      <div class="stat"><b id="sSoon">0</b><span>ينتهي خلال 7 أيام</span></div>
+      <div class="stat"><b id="sOff">0</b><span>منتهي</span></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- ربط الحساب (مرة وحدة) -->
+  <section id="setup" class="hidden">
+    <h3 style="margin:0 0 4px">ربط حساب GitHub</h3>
+    <p class="muted" style="margin:0">مرة وحدة بس. المفتاح يتحفظ على هذا الجوال فقط، وما يترسل لأي مكان غير GitHub.</p>
+    <label for="token">مفتاح الدخول (Token)</label>
+    <input id="token" class="ltr" type="password" autocomplete="off" placeholder="github_pat_...">
+    <button class="btn primary" id="saveToken" type="button">ربط</button>
+    <ol>
+      <li>GitHub ← صورة حسابك ← Settings ← Developer settings</li>
+      <li>Personal access tokens ← Fine-grained tokens ← Generate new token</li>
+      <li>Repository access: Only select repositories ← <b>phone-check-web</b></li>
+      <li>Permissions ← Contents: <b>Read and write</b></li>
+      <li>Generate token، انسخه والصقه هنا</li>
+    </ol>
+  </section>
+
+  <div id="app" class="hidden">
+    <h2>إضافة محل</h2>
+    <section>
+      <label for="newCode">كود الجهاز (يظهر في التطبيق)</label>
+      <input id="newCode" class="ltr" inputmode="text" autocapitalize="characters" maxlength="9" placeholder="4F2A-9C1B">
+      <label for="newName">اسم المحل</label>
+      <input id="newName" placeholder="مثلاً: محل أبو أحمد">
+      <label for="newDur">المدة</label>
+      <select id="newDur">
+        <option value="1">شهر</option>
+        <option value="3">3 شهور</option>
+        <option value="6">6 شهور</option>
+        <option value="12">سنة</option>
+        <option value="0.25">أسبوع (تجربة)</option>
+        <option value="forever">دائم</option>
+      </select>
+      <button class="btn primary" id="addBtn" type="button">إضافة وتفعيل</button>
+    </section>
+
+    <h2>المحلات</h2>
+    <div class="filter" role="group" aria-label="تصفية">
+      <button type="button" data-f="all" aria-pressed="true">الكل</button>
+      <button type="button" data-f="ok" aria-pressed="false">فعّال</button>
+      <button type="button" data-f="soon" aria-pressed="false">ينتهي قريب</button>
+      <button type="button" data-f="off" aria-pressed="false">منتهي</button>
+    </div>
+    <div id="list"></div>
+    <p class="muted" style="margin:14px 4px 0">التغييرات توصل للتطبيق خلال 10 دقائق تقريباً. بعدها صاحب المحل يضغط "تحقق مرة ثانية" أو يقفل التطبيق ويفتحه.</p>
+    <p style="margin:18px 4px 0"><button class="btn danger small" id="logout" type="button">فصل الحساب من هذا الجوال</button></p>
+  </div>
+</main>
+
+<div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  var OWNER = "tennen202015-eng", REPO = "phone-check-web", PATH = "licenses.json", BRANCH = "main";
+  var API = "https://api.github.com/repos/" + OWNER + "/" + REPO + "/contents/" + PATH;
+  var KEY = "pc_admin_token";
+  var DAY = 86400000;
+
+  var data = { licenses: [] }, sha = null, busy = false, filter = "all";
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function getToken() { try { return localStorage.getItem(KEY) || ""; } catch (e) { return memToken; } }
+  var memToken = "";
+  function setToken(t) { memToken = t; try { t ? localStorage.setItem(KEY, t) : localStorage.removeItem(KEY); } catch (e) {} }
+
+  var toastTimer;
+  function toast(msg, err) {
+    var t = $("toast");
+    t.textContent = msg;
+    t.className = "toast" + (err ? " err" : "");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.className = "toast hidden"; }, err ? 6000 : 3000);
+  }
+
+  // ----- التواريخ (بتوقيت السعودية) -----
+  function todayStr() {
+    var d = new Date(Date.now() + 3 * 3600000);
+    return d.toISOString().slice(0, 10);
+  }
+  function parseDay(s) { var p = s.split("-"); return Date.UTC(+p[0], +p[1] - 1, +p[2]); }
+  function fmtDay(ms) { return new Date(ms).toISOString().slice(0, 10); }
+  function addMonths(dayStr, months) {
+    if (months < 1) return fmtDay(parseDay(dayStr) + Math.round(months * 28) * DAY);
+    var p = dayStr.split("-");
+    var d = new Date(Date.UTC(+p[0], +p[1] - 1 + months, +p[2]));
+    return d.toISOString().slice(0, 10);
+  }
+  function daysLeft(lic) {
+    if (lic.until === "forever") return Infinity;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(lic.until || "")) return -1;
+    return Math.round((parseDay(lic.until) - parseDay(todayStr())) / DAY) + 1;
+  }
+  function status(lic) {
+    var d = daysLeft(lic);
+    if (d === Infinity) return { k: "ok", t: "دائم" };
+    if (d <= 0) return { k: "off", t: "منتهي" };
+    if (d <= 7) return { k: "soon", t: "باقي " + d + " يوم" };
+    return { k: "ok", t: "باقي " + d + " يوم" };
+  }
+
+  // ----- GitHub -----
+  function b64decodeUtf8(b64) {
+    var bin = atob(b64.replace(/\s/g, ""));
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+  function b64encodeUtf8(str) {
+    var bytes = new TextEncoder().encode(str), bin = "";
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  }
+  function gh(method, body) {
+    return fetch(API + (method === "GET" ? "?ref=" + BRANCH + "&t=" + Date.now() : ""), {
+      method: method,
+      headers: {
+        "Authorization": "Bearer " + getToken(),
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28"
+      },
+      body: body ? JSON.stringify(body) : undefined,
+      cache: "no-store"
+    }).then(function (r) {
+      if (r.status === 401) throw new Error("المفتاح غير صحيح أو انتهى. اربط الحساب من جديد.");
+      if (r.status === 403) throw new Error("المفتاح ما عنده صلاحية تعديل. تأكد إنه Contents: Read and write.");
+      if (r.status === 404) throw new Error(method === "GET" ? "ما لقينا licenses.json في مستودع phone-check-web." : "المستودع غير موجود أو المفتاح ما يوصله.");
+      if (r.status === 409) throw new Error("الملف تغيّر من مكان ثاني. اضغط تحديث وأعد المحاولة.");
+      if (!r.ok) throw new Error("خطأ من GitHub (" + r.status + ")");
+      return r.json();
+    });
+  }
+
+  function load() {
+    busy = true; render();
+    return gh("GET").then(function (j) {
+      sha = j.sha;
+      var parsed = JSON.parse(b64decodeUtf8(j.content));
+      data = { licenses: Array.isArray(parsed.licenses) ? parsed.licenses : [] };
+      busy = false; render();
+    }).catch(function (e) {
+      busy = false; render();
+      toast(e.message, true);
+      if (/المفتاح غير صحيح/.test(e.message)) { setToken(""); show(); }
+    });
+  }
+
+  function save(msg) {
+    busy = true; render();
+    var clean = { licenses: data.licenses.map(function (l) { return { code: l.code, name: l.name || "", until: l.until }; }) };
+    var text = JSON.stringify(clean, null, 2) + "\n";
+    return gh("PUT", { message: msg, content: b64encodeUtf8(text), sha: sha, branch: BRANCH }).then(function (j) {
+      sha = j.content.sha;
+      busy = false; render();
+      toast("تم الحفظ ✓ يوصل للتطبيق خلال 10 دقائق تقريباً");
+    }).catch(function (e) {
+      busy = false;
+      toast(e.message, true);
+      return load();
+    });
+  }
+
+  // ----- العرض -----
+  function render() {
+    var lics = data.licenses;
+    var c = { ok: 0, soon: 0, off: 0 };
+    lics.forEach(function (l) { var s = status(l).k; c[s]++; if (s === "soon") c.ok++; });
+    $("sActive").textContent = c.ok;
+    $("sSoon").textContent = c.soon;
+    $("sOff").textContent = c.off;
+    document.querySelectorAll("button[data-act], #addBtn").forEach(function (b) { b.disabled = busy; });
+
+    var shown = lics.map(function (l, i) { return { l: l, i: i, s: status(l) }; })
+      .filter(function (x) { return filter === "all" || x.s.k === filter; })
+      .sort(function (a, b) { return daysLeft(a.l) - daysLeft(b.l); });
+
+    var list = $("list");
+    if (busy && !lics.length) { list.innerHTML = '<div class="card empty">جاري التحميل…</div>'; return; }
+    if (!shown.length) {
+      list.innerHTML = '<div class="card empty">' + (lics.length ? "ما فيه محلات في هذا التصنيف." : "ما فيه محلات للحين. أضف أول محل فوق.") + "</div>";
+      return;
+    }
+    list.innerHTML = shown.map(function (x) {
+      var l = x.l, forever = l.until === "forever";
+      return '<div class="card">' +
+        '<div class="shop-head"><div><div class="shop-name">' + esc(l.name || "بدون اسم") + '</div>' +
+        '<span class="code">' + esc(l.code) + '</span></div>' +
+        '<span class="chip ' + x.s.k + '">' + x.s.t + '</span></div>' +
+        '<div class="until">' + (forever ? "اشتراك <b>دائم</b>" : "ينتهي في <b dir=\"ltr\">" + esc(l.until) + "</b>") + '</div>' +
+        '<div class="row">' +
+          (forever ? "" :
+            '<button class="btn ghost small" data-act="ext" data-i="' + x.i + '" data-m="1" type="button" ' + (busy ? "disabled" : "") + '>+ شهر</button>' +
+            '<button class="btn ghost small" data-act="ext" data-i="' + x.i + '" data-m="3" type="button" ' + (busy ? "disabled" : "") + '>+ 3 شهور</button>' +
+            '<button class="btn ghost small" data-act="ext" data-i="' + x.i + '" data-m="12" type="button" ' + (busy ? "disabled" : "") + '>+ سنة</button>') +
+          '<button class="btn ghost small" data-act="date" data-i="' + x.i + '" type="button" ' + (busy ? "disabled" : "") + '>تاريخ</button>' +
+          '<button class="btn danger small" data-act="del" data-i="' + x.i + '" type="button" ' + (busy ? "disabled" : "") + '>إيقاف</button>' +
+        '</div>' +
+        '<div class="datebox hidden" id="db' + x.i + '">' +
+          '<input type="date" id="dt' + x.i + '" value="' + (forever ? todayStr() : esc(l.until)) + '" aria-label="تاريخ الانتهاء">' +
+          '<button class="btn ghost small" data-act="setdate" data-i="' + x.i + '" type="button">حفظ</button>' +
+          '<button class="btn ghost small" data-act="forever" data-i="' + x.i + '" type="button">دائم</button>' +
+        '</div>' +
+      '</div>';
+    }).join("");
+  }
+
+  function show() {
+    var has = !!getToken();
+    $("setup").classList.toggle("hidden", has);
+    $("app").classList.toggle("hidden", !has);
+    $("stats").classList.toggle("hidden", !has);
+    $("reloadBtn").classList.toggle("hidden", !has);
+  }
+
+  // ----- الأحداث -----
+  $("saveToken").addEventListener("click", function () {
+    var t = $("token").value.trim();
+    if (t.length < 20) { toast("الصق المفتاح كامل", true); return; }
+    setToken(t);
+    $("token").value = "";
+    show();
+    load();
+  });
+
+  $("logout").addEventListener("click", function () {
+    if (!confirm("تفصل الحساب من هذا الجوال؟ بتحتاج تلصق المفتاح من جديد.")) return;
+    setToken("");
+    data = { licenses: [] };
+    show();
+  });
+
+  $("reloadBtn").addEventListener("click", function () { load(); });
+
+  $("newCode").addEventListener("input", function (e) {
+    var v = e.target.value.toUpperCase().replace(/[^0-9A-F]/g, "").slice(0, 8);
+    e.target.value = v.length > 4 ? v.slice(0, 4) + "-" + v.slice(4) : v;
+  });
+
+  $("addBtn").addEventListener("click", function () {
+    var code = $("newCode").value.trim().toUpperCase();
+    var name = $("newName").value.trim();
+    var dur = $("newDur").value;
+    if (!/^[0-9A-F]{4}-[0-9A-F]{4}$/.test(code)) { toast("الكود لازم يكون 8 حروف مثل 4F2A-9C1B", true); return; }
+    if (!name) { toast("اكتب اسم المحل", true); return; }
+    var until = dur === "forever" ? "forever" : addMonths(todayStr(), parseFloat(dur));
+    var existing = data.licenses.findIndex(function (l) { return (l.code || "").toUpperCase() === code; });
+    if (existing >= 0) {
+      if (!confirm("الكود موجود باسم \"" + (data.licenses[existing].name || "") + "\". تحدّث بياناته؟")) return;
+      data.licenses[existing] = { code: code, name: name, until: until };
+    } else {
+      data.licenses.push({ code: code, name: name, until: until });
+    }
+    $("newCode").value = ""; $("newName").value = "";
+    render();
+    save("إضافة " + name);
+  });
+
+  document.querySelectorAll(".filter button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      filter = b.getAttribute("data-f");
+      document.querySelectorAll(".filter button").forEach(function (o) { o.setAttribute("aria-pressed", o === b ? "true" : "false"); });
+      render();
+    });
+  });
+
+  $("list").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-act]");
+    if (!b || busy) return;
+    var i = +b.getAttribute("data-i"), l = data.licenses[i], act = b.getAttribute("data-act");
+    if (!l) return;
+    if (act === "ext") {
+      var m = +b.getAttribute("data-m");
+      // التمديد من نهاية الاشتراك الحالي، أو من اليوم لو منتهي
+      var base = daysLeft(l) > 0 ? l.until : todayStr();
+      l.until = addMonths(base, m);
+      render();
+      save("تمديد " + (l.name || l.code));
+    } else if (act === "date") {
+      $("db" + i).classList.toggle("hidden");
+    } else if (act === "setdate") {
+      var v = $("dt" + i).value;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) { toast("اختر تاريخ", true); return; }
+      l.until = v;
+      render();
+      save("تعديل تاريخ " + (l.name || l.code));
+    } else if (act === "forever") {
+      l.until = "forever";
+      render();
+      save("اشتراك دائم " + (l.name || l.code));
+    } else if (act === "del") {
+      if (!confirm("إيقاف \"" + (l.name || l.code) + "\"؟ التطبيق بيقفل عنده خلال دقائق.")) return;
+      var name = l.name || l.code;
+      data.licenses.splice(i, 1);
+      render();
+      save("إيقاف " + name);
+    }
+  });
+
+  show();
+  if (getToken()) load();
+})();
+</script>
+</body>
+</html>
