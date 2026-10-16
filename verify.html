@@ -200,9 +200,14 @@
     var h = "<h3>" + esc(t("بيانات التقرير", "Report data")) + "</h3>";
     h += row(t("رقم التقرير", "Report no."), d.id);
     h += row(t("تاريخ الفحص", "Date"), dateText);
+    h += row(t("صادر من", "Issued by"), d.by ? d.by + " ✓" : t("فحص ذاتي (غير صادر من محل معتمد)", "Self-inspection (not from a certified shop)"), d.by ? "" : "fail");
     h += row(t("الجهاز", "Device"), d.d);
     h += row("IMEI", d.im || t("غير مُدخل", "Not entered"));
     if (d.dt) h += row(t("بصمة الجهاز", "Device tag"), d.dt);
+    if (d.ag != null) {
+      var al = d.ag >= 80 ? t("حديث", "Modern") : d.ag >= 60 ? t("جيد لسنوات", "Good for years") : d.ag >= 40 ? t("بدأ يقدم", "Ageing") : t("قديم", "Old");
+      h += row(t("العمر والقدرة", "Age & capability"), al + (d.ay ? t(" · إنتاج " + d.ay + " تقريباً", " · made around " + d.ay) : ""), d.ag < 40 ? "fail" : "");
+    }
     h += row(t("نوع الفحص", "Inspection type"), d.md === "q" ? t("فحص سريع", "Quick inspection") : t("فحص كامل", "Full inspection"));
     h += row(t("الاختبارات المنجزة", "Tests completed"), d.t + " / " + d.n);
     if (d.b) {

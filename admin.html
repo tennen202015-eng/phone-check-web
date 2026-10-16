@@ -135,6 +135,36 @@
       <button class="btn primary" id="addBtn" type="button">إضافة وتفعيل</button>
     </section>
 
+    <h2>رمز فحص كامل (مرة واحدة)</h2>
+    <section>
+      <div id="passKeyBox">
+        <p class="muted" style="margin:0">لمرة وحدة: الصق "مفتاح الرموز" اللي أرسلته لك (يتحفظ على هذا الجوال فقط).</p>
+        <label for="passKey">مفتاح الرموز</label>
+        <input id="passKey" class="ltr" type="password" autocomplete="off" placeholder="MIGHAgEA...">
+        <button class="btn primary" id="savePassKey" type="button">حفظ المفتاح</button>
+      </div>
+      <div id="passGen" class="hidden">
+        <label for="passCode">كود جهاز العميل</label>
+        <input id="passCode" class="ltr" autocapitalize="characters" maxlength="9" placeholder="4F2A-9C1B">
+        <label for="passDur">المدة</label>
+        <select id="passDur">
+          <option value="24">24 ساعة</option>
+          <option value="48">48 ساعة</option>
+          <option value="168">أسبوع</option>
+        </select>
+        <button class="btn primary" id="passBtn" type="button">إنشاء الرمز</button>
+        <div id="passOut" class="hidden">
+          <label for="passToken">الرمز (أرسله للعميل)</label>
+          <textarea id="passToken" class="ltr" rows="4" readonly style="width:100%;border:1px solid var(--line);border-radius:14px;padding:10px 12px;font:inherit;font-size:13px;resize:none"></textarea>
+          <div class="row" style="margin-top:10px">
+            <button class="btn ghost small" id="passCopy" type="button">نسخ</button>
+            <button class="btn ghost small" id="passWa" type="button">إرسال واتساب</button>
+          </div>
+        </div>
+        <p class="muted" style="margin:12px 2px 0" id="passLog"></p>
+      </div>
+    </section>
+
     <h2>المحلات</h2>
     <div class="filter" role="group" aria-label="تصفية">
       <button type="button" data-f="all" aria-pressed="true">الكل</button>
@@ -343,6 +373,60 @@
     load();
   });
 
+  // ----- رموز الفحص الكامل (موقّعة بمفتاح الرموز، ومربوطة بكود جهاز العميل) -----
+  var PKEY = "pc_pass_key", PLOG = "pc_pass_log";
+  function lsGet(k) { try { return localStorage.getItem(k) || ""; } catch (e) { return ""; } }
+  function lsSet(k, v) { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch (e) {} }
+  function b64ToBuf(b64) { var bin = atob(b64.replace(/\s/g, "")), u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u.buffer; }
+  function bufToB64url(buf) { var u = new Uint8Array(buf), s = ""; for (var i = 0; i < u.length; i++) s += String.fromCharCode(u[i]); return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); }
+  function showPass() {
+    var has = !!lsGet(PKEY);
+    $("passKeyBox").classList.toggle("hidden", has);
+    $("passGen").classList.toggle("hidden", !has);
+    var log = [];
+    try { log = JSON.parse(lsGet(PLOG) || "[]"); } catch (e) {}
+    $("passLog").textContent = log.length ? "آخر الرموز: " + log.slice(0, 5).map(function (x) { return x.c + " (" + x.d + ")"; }).join("، ") + " · المجموع " + log.length : "";
+  }
+  $("savePassKey").addEventListener("click", function () {
+    var k = $("passKey").value.trim();
+    if (k.length < 100) { toast("الصق المفتاح كامل", true); return; }
+    crypto.subtle.importKey("pkcs8", b64ToBuf(k), { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]).then(function () {
+      lsSet(PKEY, k); $("passKey").value = ""; showPass(); toast("تم حفظ مفتاح الرموز ✓");
+    }).catch(function () { toast("المفتاح غير صحيح", true); });
+  });
+  $("passCode").addEventListener("input", function (e) {
+    var v = e.target.value.toUpperCase().replace(/[^0-9A-F]/g, "").slice(0, 8);
+    e.target.value = v.length > 4 ? v.slice(0, 4) + "-" + v.slice(4) : v;
+  });
+  $("passBtn").addEventListener("click", function () {
+    var code = $("passCode").value.toUpperCase().replace(/[^0-9A-F]/g, "");
+    if (code.length !== 8) { toast("كود الجهاز 8 حروف مثل 4F2A-9C1B", true); return; }
+    var hours = +$("passDur").value;
+    var exp = Math.floor(Date.now() / 1000) + hours * 3600;
+    var msg = "PCP1." + code + "." + exp;
+    crypto.subtle.importKey("pkcs8", b64ToBuf(lsGet(PKEY)), { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"])
+      .then(function (key) { return crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, key, new TextEncoder().encode(msg)); })
+      .then(function (sig) {
+        var token = msg + "." + bufToB64url(sig);
+        $("passToken").value = token;
+        $("passOut").classList.remove("hidden");
+        var log = [];
+        try { log = JSON.parse(lsGet(PLOG) || "[]"); } catch (e) {}
+        log.unshift({ c: code.slice(0, 4) + "-" + code.slice(4), d: todayStr(), h: hours });
+        lsSet(PLOG, JSON.stringify(log.slice(0, 500)));
+        showPass();
+      }).catch(function () { toast("تعذّر إنشاء الرمز. احذف مفتاح الرموز وأعد لصقه.", true); });
+  });
+  $("passCopy").addEventListener("click", function () {
+    var t = $("passToken").value;
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { toast("تم النسخ ✓"); })
+      .catch(function () { $("passToken").select(); });
+  });
+  $("passWa").addEventListener("click", function () {
+    var t = "رمز الفحص الكامل لتطبيق فاحص الجوال (افتح التطبيق ← فحص كامل لجوالي ← الصق الرمز):\n" + $("passToken").value;
+    window.open("https://wa.me/?text=" + encodeURIComponent(t), "_blank");
+  });
+
   $("logout").addEventListener("click", function () {
     if (!confirm("تفصل الحساب من هذا الجوال؟ بتحتاج تلصق المفتاح من جديد.")) return;
     setToken("");
@@ -431,6 +515,7 @@
   });
 
   show();
+  showPass();
   if (getToken()) load();
 })();
 </script>
