@@ -118,8 +118,9 @@
   <div id="app" class="hidden">
     <h2>إضافة محل</h2>
     <section>
-      <label for="newCode">كود الجهاز (يظهر في التطبيق)</label>
+      <label for="newCode">كود جوال المحل (اختياري، يظهر في التطبيق)</label>
       <input id="newCode" class="ltr" inputmode="text" autocapitalize="characters" maxlength="9" placeholder="4F2A-9C1B">
+      <p class="muted" style="margin:6px 2px 0">بيتولّد للمحل "مفتاح" تلقائياً، يفعّل فيه جوالات الزبائن 24 ساعة للفحص.</p>
       <label for="newName">اسم المحل</label>
       <input id="newName" placeholder="مثلاً: محل أبو أحمد">
       <label for="newDur">المدة</label>
@@ -195,6 +196,14 @@
     if (!/^\d{4}-\d{2}-\d{2}$/.test(lic.until || "")) return -1;
     return Math.round((parseDay(lic.until) - parseDay(todayStr())) / DAY) + 1;
   }
+  // مفتاح المحل: 8 حروف بدون الحروف المتشابهة (0/O و 1/I)
+  function newKey() {
+    var A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", out = "";
+    var r = new Uint32Array(8);
+    crypto.getRandomValues(r);
+    for (var i = 0; i < 8; i++) out += A[r[i] % A.length];
+    return out.slice(0, 4) + "-" + out.slice(4);
+  }
   function status(lic) {
     var d = daysLeft(lic);
     if (d === Infinity) return { k: "ok", t: "دائم" };
@@ -251,7 +260,12 @@
 
   function save(msg) {
     busy = true; render();
-    var clean = { licenses: data.licenses.map(function (l) { return { code: l.code, name: l.name || "", until: l.until }; }) };
+    var clean = { licenses: data.licenses.map(function (l) {
+      var o = { name: l.name || "", until: l.until };
+      if (l.code) o.code = l.code;
+      if (l.key) o.key = l.key;
+      return o;
+    }) };
     var text = JSON.stringify(clean, null, 2) + "\n";
     return gh("PUT", { message: msg, content: b64encodeUtf8(text), sha: sha, branch: BRANCH }).then(function (j) {
       sha = j.content.sha;
@@ -288,7 +302,8 @@
       var l = x.l, forever = l.until === "forever";
       return '<div class="card">' +
         '<div class="shop-head"><div><div class="shop-name">' + esc(l.name || "بدون اسم") + '</div>' +
-        '<span class="code">' + esc(l.code) + '</span></div>' +
+        '<span class="code">' + (l.code ? "📱 " + esc(l.code) : "بدون جوال محل") + '</span>' +
+        (l.key ? '<br><span class="code">🔑 ' + esc(l.key) + '</span>' : "") + '</div>' +
         '<span class="chip ' + x.s.k + '">' + x.s.t + '</span></div>' +
         '<div class="until">' + (forever ? "اشتراك <b>دائم</b>" : "ينتهي في <b dir=\"ltr\">" + esc(l.until) + "</b>") + '</div>' +
         '<div class="row">' +
@@ -297,6 +312,8 @@
             '<button class="btn ghost small" data-act="ext" data-i="' + x.i + '" data-m="3" type="button" ' + (busy ? "disabled" : "") + '>+ 3 شهور</button>' +
             '<button class="btn ghost small" data-act="ext" data-i="' + x.i + '" data-m="12" type="button" ' + (busy ? "disabled" : "") + '>+ سنة</button>') +
           '<button class="btn ghost small" data-act="date" data-i="' + x.i + '" type="button" ' + (busy ? "disabled" : "") + '>تاريخ</button>' +
+          '<button class="btn ghost small" data-act="key" data-i="' + x.i + '" type="button" ' + (busy ? "disabled" : "") + '>' + (l.key ? "مفتاح جديد" : "إنشاء مفتاح") + '</button>' +
+          (l.key ? '<button class="btn ghost small" data-act="copy" data-i="' + x.i + '" type="button">نسخ المفتاح</button>' : "") +
           '<button class="btn danger small" data-act="del" data-i="' + x.i + '" type="button" ' + (busy ? "disabled" : "") + '>إيقاف</button>' +
         '</div>' +
         '<div class="datebox hidden" id="db' + x.i + '">' +
@@ -344,15 +361,18 @@
     var code = $("newCode").value.trim().toUpperCase();
     var name = $("newName").value.trim();
     var dur = $("newDur").value;
-    if (!/^[0-9A-F]{4}-[0-9A-F]{4}$/.test(code)) { toast("الكود لازم يكون 8 حروف مثل 4F2A-9C1B", true); return; }
+    if (code && !/^[0-9A-F]{4}-[0-9A-F]{4}$/.test(code)) { toast("الكود لازم يكون 8 حروف مثل 4F2A-9C1B (أو اتركه فاضي)", true); return; }
     if (!name) { toast("اكتب اسم المحل", true); return; }
     var until = dur === "forever" ? "forever" : addMonths(todayStr(), parseFloat(dur));
-    var existing = data.licenses.findIndex(function (l) { return (l.code || "").toUpperCase() === code; });
+    var existing = code ? data.licenses.findIndex(function (l) { return (l.code || "").toUpperCase() === code; }) : -1;
     if (existing >= 0) {
       if (!confirm("الكود موجود باسم \"" + (data.licenses[existing].name || "") + "\". تحدّث بياناته؟")) return;
-      data.licenses[existing] = { code: code, name: name, until: until };
+      var old = data.licenses[existing];
+      data.licenses[existing] = { code: code, key: old.key || newKey(), name: name, until: until };
     } else {
-      data.licenses.push({ code: code, name: name, until: until });
+      var entry = { name: name, until: until, key: newKey() };
+      if (code) entry.code = code;
+      data.licenses.push(entry);
     }
     $("newCode").value = ""; $("newName").value = "";
     render();
@@ -391,6 +411,16 @@
       l.until = "forever";
       render();
       save("اشتراك دائم " + (l.name || l.code));
+    } else if (act === "key") {
+      if (l.key && !confirm("مفتاح جديد لـ \"" + (l.name || "") + "\"؟ المفتاح القديم يوقف، والجوالات اللي اتفعّلت فيه تقفل.")) return;
+      l.key = newKey();
+      render();
+      save("مفتاح جديد " + (l.name || l.code || ""));
+    } else if (act === "copy") {
+      var txt = l.key;
+      (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(function () {
+        toast("تم نسخ المفتاح " + txt);
+      }).catch(function () { prompt("انسخ المفتاح:", txt); });
     } else if (act === "del") {
       if (!confirm("إيقاف \"" + (l.name || l.code) + "\"؟ التطبيق بيقفل عنده خلال دقائق.")) return;
       var name = l.name || l.code;
