@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0D4450">
+<meta name="robots" content="noindex">
+<title>التحقق من التقرير — فاحص الجوال</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --petrol: #0D4450; --mist: #EDF1F0; --paper: #FFFFFF; --ink: #14272C;
+    --slate: #5E7076; --line: #E1E8E7; --dim: #B7D3D8;
+    --green: #1E8E5E; --green-bg: #E2F3EB; --red: #C7432E; --red-bg: #FBE7E3; --amber: #A86B0C;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--mist); color: var(--ink); }
+  body { font-family: "IBM Plex Sans Arabic", system-ui, sans-serif; font-size: 16px; line-height: 1.6; }
+  header {
+    background: var(--petrol); color: #fff;
+    padding: calc(16px + env(safe-area-inset-top)) 20px 24px;
+    border-radius: 0 0 28px 28px;
+  }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 640px; margin: 0 auto; }
+  .app { color: var(--dim); font-weight: 600; font-size: 14px; }
+  header h1 { margin: 6px auto 0; font-size: 24px; max-width: 640px; }
+  .lang {
+    font: inherit; font-size: 13px; font-weight: 600; color: #fff; background: transparent;
+    border: 1px solid var(--dim); border-radius: 18px; padding: 6px 14px; cursor: pointer; min-height: 36px;
+  }
+  .lang:focus-visible { outline: 3px solid #5BE3A8; outline-offset: 2px; }
+  main { padding: 16px 16px calc(40px + env(safe-area-inset-bottom)); max-width: 640px; margin: 0 auto; }
+  section { background: var(--paper); border-radius: 20px; padding: 18px 20px; margin-bottom: 10px; }
+  .status { display: flex; gap: 14px; align-items: flex-start; }
+  .status .mark {
+    flex: none; width: 44px; height: 44px; border-radius: 50%;
+    display: grid; place-items: center; font-size: 22px; font-weight: 700;
+  }
+  .ok .mark { background: var(--green-bg); color: var(--green); }
+  .bad .mark { background: var(--red-bg); color: var(--red); }
+  .wait .mark { background: var(--line); color: var(--slate); }
+  .status h2 { margin: 0; font-size: 19px; }
+  .ok h2 { color: var(--green); }
+  .bad h2 { color: var(--red); }
+  .status p { margin: 4px 0 0; color: var(--slate); font-size: 14px; }
+  .score { font-size: 44px; font-weight: 700; line-height: 1; }
+  .row { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .row:last-child { border-bottom: 0; }
+  .row span:first-child { color: var(--slate); }
+  .row span:last-child { font-weight: 600; text-align: end; overflow-wrap: anywhere; }
+  h3 { margin: 0 0 6px; font-size: 16px; }
+  ul { margin: 0; padding-inline-start: 20px; }
+  li { margin: 3px 0; }
+  .fail { color: var(--red); }
+  .muted { color: var(--slate); font-size: 13px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <span class="app" id="appname">فاحص الجوال · DUWAINI</span>
+    <button class="lang" id="lang" type="button">English</button>
+  </div>
+  <h1 id="title">التحقق من التقرير</h1>
+</header>
+
+<main>
+  <section>
+    <div class="status wait" id="status">
+      <div class="mark" id="mark" aria-hidden="true">…</div>
+      <div>
+        <h2 id="stTitle">جاري التحقق…</h2>
+        <p id="stText"></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="scoreBox" class="hidden">
+    <div class="row" style="border:0;align-items:center">
+      <span id="lScore">التقييم العام</span>
+      <span><span class="score" id="score"></span><span class="muted"> / 100</span></span>
+    </div>
+  </section>
+
+  <section id="details" class="hidden"></section>
+  <section id="fails" class="hidden"></section>
+
+  <section id="howto">
+    <p class="muted" id="note">الصفحة تتأكد من التوقيع الرقمي داخل رمز QR، وتعرض البيانات الأصلية اللي سجلها تطبيق فاحص الجوال وقت الفحص. قارنها بملف التقرير اللي معك: أي اختلاف يعني إن الملف معدّل. البيانات ما ترسل لأي خادم.</p>
+  </section>
+</main>
+
+<script>
+(function () {
+  // المفتاح العام المقابل لمفتاح التوقيع في التطبيق
+  var KEYS = {
+    1: "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEJQU5aEKI602t7QRMxAvROmj0bTBZeKPm4TKdRg+MdWyoDyiRLPVKFWlFN4vY+n04qjHw9ho20hUm92zPz0ksoA=="
+  };
+
+  var TESTS = {
+    TOUCH: ["لمس الشاشة", "Touchscreen"],
+    DISPLAY: ["ألوان الشاشة والبكسلات", "Display colors & pixels"],
+    BURN_IN: ["حرق الشاشة وتجانس الإضاءة", "Screen burn-in & uniformity"],
+    SPEAKER: ["السماعة الخارجية", "Loudspeaker"],
+    EARPIECE: ["سماعة المكالمات", "Earpiece"],
+    MIC: ["المايكروفون", "Microphone"],
+    CAMERA: ["الكاميرا الخلفية", "Rear camera"],
+    FRONT_CAMERA: ["الكاميرا الأمامية", "Front camera"],
+    FLASH: ["الفلاش", "Flash"],
+    CHARGING: ["منفذ الشحن", "Charging port"],
+    STORAGE: ["التخزين: السرعة وسلامة البيانات", "Storage speed & integrity"],
+    FINGERPRINT: ["البصمة", "Fingerprint"],
+    PROXIMITY: ["حساس القرب", "Proximity sensor"],
+    MOTION: ["حساسات الحركة", "Motion sensors"],
+    VIBRATION: ["الاهتزاز", "Vibration"],
+    BUTTONS: ["أزرار الصوت", "Volume buttons"],
+    WIFI: ["الواي فاي", "Wi-Fi"],
+    BLUETOOTH: ["البلوتوث", "Bluetooth"],
+    GPS: ["الـ GPS", "GPS"],
+    SIGNAL: ["الشريحة والإشارة", "SIM & signal"],
+    CPU: ["المعالج والتهنيج", "Processor & lag"],
+    RAM: ["الرام", "RAM"],
+    MULTITOUCH: ["اللمس المتعدد", "Multi-touch"],
+    LIGHT: ["حساس الإضاءة", "Light sensor"],
+    COMPASS: ["البوصلة", "Compass"],
+    ACCOUNTS: ["الحسابات وقفل جوجل", "Accounts & Google lock"],
+    BATTERY: ["صحة البطارية", "Battery health"]
+  };
+  var CONDS = [["ممتازة", "Excellent"], ["خدوش خفيفة", "Light scratches"], ["خدوش واضحة", "Visible scratches"], ["كسر أو تلف", "Cracked / damaged"]];
+  var VERDICTS = { "-1": ["غير محدد", "Not rated"], 0: ["ممتازة", "Excellent"], 1: ["جيدة", "Good"], 2: ["مقبولة وتضعف", "Fair, weakening"], 3: ["تحتاج تغيير قريب", "Needs replacement soon"], 4: ["خطر: لازم تتغير فوراً", "Danger: replace immediately"] };
+
+  var en = /[?&]lang=en/.test(location.search);
+  var state = { kind: "wait", data: null };
+
+  function t(ar, e) { return en ? e : ar; }
+  function $(id) { return document.getElementById(id); }
+
+  function b64urlToBytes(s) {
+    s = s.replace(/-/g, "+").replace(/_/g, "/");
+    while (s.length % 4) s += "=";
+    var bin = atob(s), out = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  function b64ToBytes(s) { return b64urlToBytes(s.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")); }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; });
+  }
+
+  function row(label, value, cls) {
+    return '<div class="row"><span>' + esc(label) + '</span><span' + (cls ? ' class="' + cls + '"' : "") + '>' + esc(value) + "</span></div>";
+  }
+
+  function render() {
+    var html = document.documentElement;
+    html.lang = en ? "en" : "ar";
+    html.dir = en ? "ltr" : "rtl";
+    $("lang").textContent = en ? "العربية" : "English";
+    $("appname").textContent = t("فاحص الجوال · DUWAINI", "Phone Check · DUWAINI");
+    $("title").textContent = t("التحقق من التقرير", "Report verification");
+    document.title = t("التحقق من التقرير — فاحص الجوال", "Report verification — Phone Check");
+    $("lScore").textContent = t("التقييم العام", "Overall score");
+    $("note").textContent = t(
+      "الصفحة تتأكد من التوقيع الرقمي داخل رمز QR، وتعرض البيانات الأصلية اللي سجلها تطبيق فاحص الجوال وقت الفحص. قارنها بملف التقرير اللي معك: أي اختلاف يعني إن الملف معدّل. البيانات ما ترسل لأي خادم.",
+      "This page checks the digital signature inside the QR code and shows the original data Phone Check recorded at inspection time. Compare it with the report file you have: any difference means the file was altered. No data is sent to any server."
+    );
+
+    var st = $("status");
+    st.className = "status " + state.kind;
+    if (state.kind === "wait") {
+      $("mark").textContent = "…";
+      $("stTitle").textContent = t("جاري التحقق…", "Verifying…");
+      $("stText").textContent = "";
+    } else if (state.kind === "bad") {
+      $("mark").textContent = "✕";
+      $("stTitle").textContent = t("التقرير غير صحيح", "Report not valid");
+      $("stText").textContent = state.reason;
+    } else {
+      $("mark").textContent = "✓";
+      $("stTitle").textContent = t("تقرير أصلي وموقّع", "Genuine, signed report");
+      $("stText").textContent = t("البيانات تحت هي اللي سجلها التطبيق وقت الفحص، وما انعدّلت.", "The data below was recorded by the app at inspection time and has not been altered.");
+    }
+
+    var d = state.data;
+    $("scoreBox").classList.toggle("hidden", !d);
+    $("details").classList.toggle("hidden", !d);
+    $("fails").classList.toggle("hidden", !d);
+    if (!d) return;
+
+    $("score").textContent = d.s;
+    $("score").style.color = d.s >= 75 ? "var(--green)" : d.s >= 50 ? "var(--amber)" : "var(--red)";
+
+    var date = new Date(d.ts * 1000);
+    var dateText = date.getFullYear() + "/" + String(date.getMonth() + 1).padStart(2, "0") + "/" + String(date.getDate()).padStart(2, "0") +
+      "  " + String(date.getHours()).padStart(2, "0") + ":" + String(date.getMinutes()).padStart(2, "0");
+    var h = "<h3>" + esc(t("بيانات التقرير", "Report data")) + "</h3>";
+    h += row(t("رقم التقرير", "Report no."), d.id);
+    h += row(t("تاريخ الفحص", "Date"), dateText);
+    h += row(t("الجهاز", "Device"), d.d);
+    h += row("IMEI", d.im || t("غير مُدخل", "Not entered"));
+    if (d.dt) h += row(t("بصمة الجهاز", "Device tag"), d.dt);
+    h += row(t("نوع الفحص", "Inspection type"), d.md === "q" ? t("فحص سريع", "Quick inspection") : t("فحص كامل", "Full inspection"));
+    h += row(t("الاختبارات المنجزة", "Tests completed"), d.t + " / " + d.n);
+    if (d.b) {
+      var v = VERDICTS[d.b.r] || VERDICTS["-1"];
+      h += row(t("البطارية", "Battery"), (d.b.h != null ? d.b.h + "% · " : "") + t(v[0], v[1]), d.b.r >= 3 ? "fail" : "");
+    }
+    if (d.cb != null && CONDS[d.cb]) h += row(t("الهيكل", "Body"), t(CONDS[d.cb][0], CONDS[d.cb][1]));
+    if (d.cs != null && CONDS[d.cs]) h += row(t("زجاج الشاشة", "Screen glass"), t(CONDS[d.cs][0], CONDS[d.cs][1]));
+    h += row(t("تنبيهات مهمة", "Important warnings"), d.fl > 0 ? String(d.fl) : t("لا يوجد", "None"), d.fl > 0 ? "fail" : "");
+    $("details").innerHTML = h;
+
+    var f = "<h3>" + esc(t("الاختبارات اللي فيها مشكلة", "Failed tests")) + "</h3>";
+    if (!d.x || !d.x.length) {
+      f += '<p class="muted">' + esc(t("ولا اختبار فشل.", "No test failed.")) + "</p>";
+    } else {
+      f += "<ul>";
+      d.x.forEach(function (k) {
+        var n = TESTS[k] ? t(TESTS[k][0], TESTS[k][1]) : k;
+        f += '<li class="fail">' + esc(n) + "</li>";
+      });
+      f += "</ul>";
+    }
+    $("fails").innerHTML = f;
+  }
+
+  function fail(reason) {
+    state = { kind: "bad", data: null, reason: reason };
+    render();
+  }
+
+  async function verify() {
+    var hash = location.hash.replace(/^#/, "");
+    var parts = hash.split(".");
+    if (parts.length !== 2 || !parts[0] || !parts[1]) {
+      fail(t("ما فيه بيانات تقرير. امسح رمز QR الموجود في التقرير.", "No report data. Scan the QR code printed on the report."));
+      return;
+    }
+    if (!window.crypto || !crypto.subtle) {
+      fail(t("المتصفح ما يدعم التحقق. افتح الرابط في Chrome أو Safari.", "This browser can't verify. Open the link in Chrome or Safari."));
+      return;
+    }
+    try {
+      var data = b64urlToBytes(parts[0]);
+      var sig = b64urlToBytes(parts[1]);
+      var json = JSON.parse(new TextDecoder().decode(data));
+      var keyB64 = KEYS[json.k];
+      if (!keyB64) throw new Error("key");
+      var key = await crypto.subtle.importKey("spki", b64ToBytes(keyB64), { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+      var ok = await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, key, sig, data);
+      if (!ok) {
+        fail(t("التوقيع ما يطابق: البيانات معدّلة أو الرمز مو من تطبيق فاحص الجوال.", "Signature mismatch: the data was altered or the code is not from Phone Check."));
+        return;
+      }
+      state = { kind: "ok", data: json };
+      render();
+    } catch (e) {
+      fail(t("الرمز تالف أو ناقص. جرّب تمسحه مرة ثانية.", "The code is damaged or incomplete. Try scanning it again."));
+    }
+  }
+
+  $("lang").addEventListener("click", function () {
+    en = !en;
+    if (state.kind === "bad") { verify(); } else { render(); }
+  });
+  render();
+  verify();
+})();
+</script>
+</body>
+</html>
